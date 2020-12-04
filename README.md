@@ -1,1 +1,2 @@
-# aoc2020erl
+# Advent of Code 2020 with Erlang
+
