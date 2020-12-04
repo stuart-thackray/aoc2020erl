@@ -1,8 +1,8 @@
 -module(day1). 
 
 -export([run/0,
-		 run_p2/0
-		]).
+         run_p2/0
+        ]).
 
 
 
@@ -15,7 +15,7 @@ run() ->
 
 
 run_p2() ->
-	
+
     {ok, Bin} = file:read_file("input/input.txt"), 
     Input = parse_data(Bin), 
     put(input, Input), 
@@ -43,7 +43,7 @@ run_input_p2([], _,_) ->
 run_input_p2([_E|Tail], [],Third) ->
     run_input_p2(Tail, get(input),Third);
 run_input_p2(First, [_|Tail],[]) ->
-	run_input_p2(First, Tail, get(input));
+    run_input_p2(First, Tail, get(input));
 run_input_p2(Search = [E|_], Second = [A|Rest],[B|BRest]) ->
     case E+A+B of
         2020 ->
