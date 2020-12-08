@@ -11,7 +11,8 @@ Will continue whilst I have time find it interesting. Don't expect optimized; tr
 1. Day5 :heavy_check_mark:
 1. Day6 :heavy_check_mark:
 1. Day7 :x: Took way too much time parsing the input; had attempt at rules; but couldn't get to work; guess gb_trees or another way correct way of getting answer.
-    
+*edit* :heavy_check_mark: part one  :heavy_check_mark: p2 didn't try was taking too much time.
+1. Day8 heavy_check_mark: start seq from 0 ftw
 
 
 
