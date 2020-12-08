@@ -8,6 +8,7 @@
 %% API functions
 %% ====================================================================
 -export([p1/0,
+		 p1_test/0,
 		 p2/0
 		]).
 
@@ -18,7 +19,19 @@ p1() ->
 %% 	
  	search_end_points( ["shiny gold"], PuzzleInput,  []).
 
-
+p1_test() ->
+	Str = "light red bags contain 1 bright white bag, 2 muted yellow bags.
+dark orange bags contain 3 bright white bags, 4 muted yellow bags.
+bright white bags contain 1 shiny gold bag.
+muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
+shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
+dark olive bags contain 3 faded blue bags, 4 dotted black bags.
+vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
+faded blue bags contain no other bags.
+dotted black bags contain no other bags.",
+	Input = string:tokens(Str,"\n"),
+	PuzzleInput = parse_input(Input),
+ 	search_end_points( ["shiny gold"], PuzzleInput,  []).
 parse_input(Input) ->
 	P1 = [remove_punctuation(X) || X <-Input],
 %% 	P2 = [remove_bags(X) || X <- P1]. 
@@ -34,16 +47,18 @@ search_end_points([], _,  EndPoints) ->
 search_end_points(Points, Puzzle, EndPoints) ->
 %% 	io:format("Points:~p EndPoints:~p~n", [Points, EndPoints]),
 %% 	receive after 1000 -> void end, 
-	Records = lists:concat([find_records(Y, Puzzle) || Y <- Points]),
+	Records = lists:usort(lists:concat([find_records(Y, Puzzle) || Y <- Points])),
 	io:format("~nRecords:~p", [Records]),
 	NewEP = [S|| S<- Records, 
 					 is_tuple(S)], 
 	SearchPoints = [T || T<- Records, 
-						 is_list(T)],
+						 is_list(T),
+						 T /= []],
 	search_end_points(
 	  lists:usort(SearchPoints), 
 	  Puzzle, 
-	  [[{U, other}|| U <- SearchPoints], NewEP,EndPoints]
+	  [[{U, other}|| U <- Records,
+					 is_list(U)], NewEP,EndPoints]
 				  
 					 ). 
 	
@@ -59,7 +74,8 @@ find_records(Search, PuzzleInput) ->
 search(_, {_,[]}) ->
 	[];
 search(_Str,  {Key, [no_other]}) ->
-	{Key, no_other};
+%% 	{Key, no_other};
+[];
 search(Str,  {Key, [{_,Str}|_Tail]} )->
 	Key;
 search(Str, {Key, [_|Tail]}) ->
