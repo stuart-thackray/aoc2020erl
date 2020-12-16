@@ -23,7 +23,10 @@ p1() ->
 				   is_integer(X)]).
 
 p2() ->
-	[].
+		Input = read_input(), 
+	MapRes = run2(Input, #{}),
+	lists:sum([Y || {X, Y} <- maps:to_list(MapRes),
+				   is_integer(X)]).
 
 %% ====================================================================
 %% Internal functions
@@ -35,7 +38,6 @@ run([E = [$m,$a,$s|_]|Tail], Map) ->
 	run(Tail, 
 		Map#{mask => RemoveStart});
 run([E|Tail], Map) ->
-	%% TODO Code:
 	[MemIndStr,Str] = string:tokens(E, "me[] = "),
 	MemInd = list_to_integer(MemIndStr), 
 	Value = list_to_integer(Str),
@@ -45,6 +47,31 @@ run([E|Tail], Map) ->
 	NewValue = binary:decode_unsigned(<<0:4, Applied/bits>>),
 	run(Tail,
 		Map#{ MemInd => NewValue}).
+
+run2([], Map) ->
+	Map;
+run2([E = [$m,$a,$s|_]|Tail], Map) ->
+	[RemoveStart] = string:tokens(E, "mask = "),
+	run2(Tail, 
+		Map#{mask => RemoveStart});
+run2([E|Tail], Map) ->
+	[MemIndStr,Str] = string:tokens(E, "me[] = "),
+	MemInd = list_to_integer(MemIndStr), 
+	Value = list_to_integer(Str),
+	MemIndBin = binary:encode_unsigned(MemInd),
+	Mask = maps:get(mask, Map),
+	Applied = lists:flatten(apply_mem_mask(Mask, pad(MemIndBin), <<>>)),
+	NewMap = apply_values_to_ind(Applied, Map, Value),
+ 	run2(Tail, NewMap).
+%% 	NewValue = binary:decode_unsigned(<<0:4, Applied/bits>>),
+%% 	run2(Tail,
+%% 		Map#{ MemInd => NewValue}).
+apply_values_to_ind([],Map, Value) ->
+	Map;
+apply_values_to_ind([E|Tail], Map, Value) ->
+	apply_values_to_ind(Tail, 
+						Map#{ E => Value}, 
+						Value).
 
 
 apply_mask([], _) ->
@@ -58,6 +85,20 @@ apply_mask([?SET|Tail], <<_:1, Rest/bits>>) ->
 apply_mask([?UNSET|Tail], <<_:1, Rest/bits>>) ->
 	Bin = apply_mask(Tail, Rest),
 	<<0:1, Bin/bits>>.
+
+apply_mem_mask([], _, Mem ) ->
+	binary:decode_unsigned(<<0:4,Mem/bits>>);
+apply_mem_mask([?X|Tail], <<_:1, Rest/bits>>, Mem) ->
+	[ apply_mem_mask(Tail, Rest, << Mem/bits, 1:1>> ),
+	  apply_mem_mask(Tail, Rest, << Mem/bits, 0:1>>)];
+%% 	
+%% 	[<<Mem/bits, 1:1, apply_mem_mask , 
+%% 	 [0:1, Bin/bits ]];
+apply_mem_mask([?SET|Tail], <<_:1, Rest/bits>>, Mem ) ->
+	 apply_mem_mask(Tail, Rest, <<Mem/bits, 1:1>>);
+
+apply_mem_mask([?UNSET|Tail], <<E:1, Rest/bits>>, Mem) ->
+	apply_mem_mask(Tail, Rest, <<Mem/bits, E:1>>).
 
 pad(Bin) ->
 	Len = size(Bin),
